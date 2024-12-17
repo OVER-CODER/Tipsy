@@ -2,20 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Popup Container */
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-gray-900 text-white w-80 h-[400px] p-4;
+}
+
+h1 {
+  @apply text-xl font-bold text-center mb-2;
+}
+
+.subtitle {
+  @apply text-gray-400 text-center text-sm mb-4;
+}
+
+.input-container {
+  @apply flex flex-col mb-4;
+}
+
+textarea {
+  @apply bg-gray-800 text-white p-2 rounded-md h-24 resize-none;
+}
+
+button {
+  @apply bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-center w-full;
+}
+
+.solutions-container {
+  @apply bg-gray-800 p-3 rounded-md h-32 overflow-auto text-sm;
+}
+
+a {
+  @apply text-blue-400 underline;
 }

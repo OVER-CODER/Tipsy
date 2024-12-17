@@ -19,9 +19,39 @@ def generate():
     try:
 
         payload={
-            "contents" : [{"parts": [{"text": f"Fix and Explain this error: \n{error_message}"}]}],
+            "contents" : [{"parts": [{"text": f"""
+🛑 Error Detected:
+"{error_message}"
+
+---
+
+🚨 Why This Happens:
+Provide a clear and concise explanation of why this error occurs.
+
+---
+
+🔧 How to Fix It:
+Provide a step-by-step solution to fix this error, including a properly formatted code example.
+
+Format your response exactly like this:
+
+🛑 Error Detected:
+"[Error Message]"
+
+---
+
+🚨 Why This Happens:
+[Brief explanation of why the error occurs]
+
+---
+
+🔧 How to Fix It:
+[Clear steps to fix the issue with an example in a code block]
+"""
+                                      
+                                      }]}],
         }
-        response = requests.POST(
+        response = requests.post(
             f"{GEMINI_URL}?key={GEMINI_API_KEY}",
             json = payload,
             headers = {"Content-Type": "application/json"}
