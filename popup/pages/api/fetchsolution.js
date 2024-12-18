@@ -4,7 +4,6 @@ export default async function handler(req, res) {
 
         try {
             const { error } = req.body;
-            // const response = await fetch(`https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&site=stackoverflow&q=${error}`);
             const response = await fetch("http://localhost:5000/generate",{
                 method: 'POST',
                 headers: {'Content-Type': 'application/json',},

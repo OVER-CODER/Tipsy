@@ -59,7 +59,7 @@ Format your response exactly like this:
 
         ai_response = response.json()
         suggestions = ai_response.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "No suggestions available.")
-
+        print(suggestions)
         return jsonify({"suggestions": suggestions})
 
 
