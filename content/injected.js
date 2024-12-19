@@ -6,6 +6,15 @@ console.error = function(...args) {
   originalConsoleError.apply(console, args);
 };
 
+let debounceTimer;
+window.addEventListener("error", (event) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    const errorMessage = event.message;
+    window.postMessage({ type: "site-error", payload: errorMessage });
+  }, 300); 
+});
+
 window.onerror = function(message, source, lineno, colno, error) {
   const errorMessage = error ? error.message : message;
   window.postMessage({

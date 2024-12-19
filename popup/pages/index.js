@@ -3,37 +3,34 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const [errorMessage, setErrorMessage] = useState("");
   const [solutions, setSolutions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    chrome.storage.local.get(["lastError"], (data) => {
-      if (data.lastError) {
-        setErrorMessage(data.lastError.message);
-      } else {
-        setErrorMessage("No recent errors found.");
+    chrome.storage.local.get(["lastSuggestions"], (result) => {
+      if (chrome.runtime.lastError) {
+        setError("Failed to load suggestions.");
+      } else if (result.lastSuggestions) {
+        setSolutions(result.lastSuggestions);
       }
+      setLoading(false);
     });
+
+    const handleMessage = (message, sender, sendResponse) => {
+      if (message.type === "suggestions-updated") {
+        console.log("Received suggestions in popup:", message.suggestions);
+        setSolutions(message.suggestions || []);
+        setLoading(false);
+        sendResponse({ success: true });
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+
+    return () => {
+      chrome.runtime.onMessage.removeListener(handleMessage);
+    };
   }, []);
-
-  const fetchSolutions = async () => {
-    if (!errorMessage) return;
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/fetchSolution", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: errorMessage }),
-      });
-
-      const { suggestions } = await response.json();
-      setSolutions(suggestions || ["No solutions found."]);
-    } catch (error) {
-      setSolutions(["Failed to fetch solutions."]);
-    }
-
-    setLoading(false);
-  };
 
   return (
     <div className="flex flex-col items-center justify-center">
@@ -49,27 +46,29 @@ export default function Home() {
           id="error"
           value={errorMessage}
           disabled
-          className="w-full"
+          className="w-full p-2 border rounded"
         ></textarea>
       </div>
 
-      <button onClick={fetchSolutions} disabled={loading}>
-        {loading ? "Fetching Solutions..." : "Fetch Solutions"}
-      </button>
-
-      <div className="solutions-container mt-4 w-full">
-        {solutions.length > 0 ? (
-          <ul>
-            {solutions.map((link, index) => (
-              <li key={index}>
-                <a href={link} target="_blank" rel="noopener noreferrer">
-                  {link}
-                </a>
-              </li>
-            ))}
-          </ul>
+      <div className="p-4">
+        {loading ? (
+          <p>Loading suggestions...</p>
         ) : (
-          <p>No solutions available yet.</p>
+          <div>
+            <h2 className="font-bold mb-2">Suggestions</h2>
+            {solutions.length > 0 ? (
+              <ul className="list-disc pl-5">
+                {solutions.map((suggestion, index) => (
+                  <li key={index} className="mb-2">
+                    {suggestion}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No suggestions available.</p>
+            )}
+            {error && <p className="text-red-500">{error}</p>}
+          </div>
         )}
       </div>
     </div>
