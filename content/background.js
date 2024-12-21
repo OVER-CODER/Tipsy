@@ -21,17 +21,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
           chrome.storage.local.set({ lastSuggestions: suggestions }, () => {
             console.log("Suggestions stored in local storage:", suggestions);
-  
-            chrome.runtime.sendMessage(
-              { type: "suggestions-updated", suggestions },
-              (response) => {
-                if (chrome.runtime.lastError) {
-                  console.warn("Popup is not open, message not delivered.");
-                } else {
-                  console.log("Message delivered to popup:", response);
+            try {
+                chrome.runtime.sendMessage(
+                { type: "suggestions-updated", suggestions },
+                (response) => {
+                  if (chrome.runtime.lastError) {
+                    console.warn("Popup is not open, message not delivered.", chrome.runtime.lastError);
+                  } else {
+                    console.warn("Message delivered to popup:", response);
+                  }
                 }
-              }
-            );
+              );
+            } catch (error) {
+              console.error("Failed to send message to popup", error.message);
+            }
           });
   
           sendResponse({ success: true, suggestions });

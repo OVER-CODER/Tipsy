@@ -12,8 +12,10 @@ export default function Home() {
         setError("Failed to load suggestions.");
       } else if (result.lastSuggestions) {
         setSolutions(result.lastSuggestions);
+      }else {
+        setSolutions([]);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     const handleMessage = (message, sender, sendResponse) => {

@@ -21,7 +21,7 @@ window.addEventListener("message", (event) => {
   if (event.source !== window || event.data.type !== "site-error") return;
 
   const errorMessage = cleanErrorMessage(event.data.payload);
-  console.log("Message received in content script from injected script:", errorMessage);
+  // console.log("Message received in content script from injected script:", errorMessage);
 
   chrome.runtime.sendMessage(
     { type: "error-captured", payload: errorMessage },
@@ -35,6 +35,6 @@ window.addEventListener("message", (event) => {
   );
 
   chrome.storage.local.set({ lastError: { message: errorMessage } }, () => {
-    console.log("Error stored locally:", errorMessage);
+    // console.log("Error stored locally:", errorMessage);
   });
 });
