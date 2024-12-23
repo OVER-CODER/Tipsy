@@ -23,6 +23,7 @@ def generate():
 🛑 Error Detected:
 "{error_message}"
 
+Solution:
 ---
 
 🚨 Why This Happens:

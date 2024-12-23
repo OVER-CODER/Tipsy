@@ -1,50 +1,50 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "error-captured") {
-      const errorMessage = message.payload;
-  
-      console.log("Error captured in background.js:", errorMessage);
-  
-      fetch("http://localhost:5000/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ error: errorMessage }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch solution from Flask backend");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          const suggestions = data.suggestions || [];
-          console.log("Solution fetched from Flask backend:", suggestions);
+  if (message.type === "error-captured") {
+    const errorMessage = message.payload;
+    console.log("Error received in background:", errorMessage);
+    
+    chrome.storage.local.set({ lastError: errorMessage }, () => {
+      console.log("Error stored in background:", errorMessage);
+    });
 
-          chrome.storage.local.set({ lastSuggestions: suggestions }, () => {
-            console.log("Suggestions stored in local storage:", suggestions);
-            try {
-                chrome.runtime.sendMessage(
-                { type: "suggestions-updated", suggestions },
-                (response) => {
-                  if (chrome.runtime.lastError) {
-                    console.warn("Popup is not open, message not delivered.", chrome.runtime.lastError);
-                  } else {
-                    console.warn("Message delivered to popup:", response);
-                  }
-                }
-              );
-            } catch (error) {
-              console.error("Failed to send message to popup", error.message);
-            }
-          });
-  
-          sendResponse({ success: true, suggestions });
-        })
-        .catch((error) => {
-          console.error("Error fetching solution:", error.message);
-          sendResponse({ success: false, error: error.message });
+    fetch("http://localhost:5000/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ error: message.payload }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log("API response:", data);
+        const suggestions = data.suggestions;
+
+        
+        chrome.storage.local.set({ 
+          lastSuggestions: suggestions,
+          lastUpdated: Date.now()
+        }, () => {
+          console.log("Stored suggestions:", suggestions);
         });
-  
-      return true;
-    }
-  });
-  
+
+        chrome.runtime.sendMessage(
+          { 
+            type: "suggestions-updated", 
+            suggestions,
+            error: errorMessage 
+          },
+          response => {
+            if (chrome.runtime.lastError) {
+              console.log("Popup not open - data stored for later");
+            }
+          }
+        );
+
+        sendResponse({ success: true, suggestions });
+      })
+      .catch(error => {
+        console.error("API error:", error);
+        sendResponse({ success: false, error: error.message });
+      });
+
+    return true;
+  }
+});

@@ -2,7 +2,7 @@ function injectScript() {
   const script = document.createElement("script");
   script.src = chrome.runtime.getURL("content/injected.js");
   script.onload = function () {
-    this.remove(); 
+    this.remove();
   };
   document.documentElement.appendChild(script);
 }
@@ -10,31 +10,50 @@ function injectScript() {
 injectScript();
 
 function cleanErrorMessage(error) {
+  if (!error) return "Unknown error";
+  
   if (typeof error === "object") {
-    if (Array.isArray(error)) error = error[0] || "Unknown error";
-    error = JSON.stringify(error, null, 2);
+    if (error.message) return error.message;
+    if (Array.isArray(error)) return error[0]?.toString() || "Unknown error";
+    try {
+      return JSON.stringify(error, null, 2);
+    } catch (e) {
+      return error.toString();
+    }
   }
-  return error.replace(/\n\s+/g, " ").replace(/\\n/g, " ").trim();
+  return error.toString().replace(/\n\s+/g, " ").replace(/\\n/g, " ").trim();
 }
 
 window.addEventListener("message", (event) => {
   if (event.source !== window || event.data.type !== "site-error") return;
 
   const errorMessage = cleanErrorMessage(event.data.payload);
-  // console.log("Message received in content script from injected script:", errorMessage);
+  console.log("Cleaned error message:", errorMessage);
+  fetch("http://localhost:5000/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ error: errorMessage }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Suggestions from backend:", data.suggestions);
+      chrome.storage.local.set({ suggestions: data.suggestions }, () => {
+        console.log("Suggestions stored in local storage:", data.suggestions);
+      });
+    })
+    .catch((err) => {
+      console.error("Error sending to backend:", err);
+    });
 
   chrome.runtime.sendMessage(
     { type: "error-captured", payload: errorMessage },
     (response) => {
+      console.log("Background script response:", response);
       if (chrome.runtime.lastError) {
-        console.error("Error sending message to background:", chrome.runtime.lastError.message);
-      } else {
-        console.log("Message successfully sent to background:", response);
+        console.error("Error sending to background:", chrome.runtime.lastError);
       }
     }
   );
-
-  chrome.storage.local.set({ lastError: { message: errorMessage } }, () => {
-    // console.log("Error stored locally:", errorMessage);
-  });
 });
