@@ -3,7 +3,7 @@ console.log("Injected script running");
 const originalConsoleError = console.error;
 console.error = function(...args) {
   window.postMessage({ type: 'site-error', payload: args }, '*');
-  originalConsoleError.apply(console, args);
+  // originalConsoleError.apply(console, args);
 };
 
 let debounceTimer;
