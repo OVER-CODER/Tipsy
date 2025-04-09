@@ -13,6 +13,14 @@ export default function Home() {
     });
   }, []);
 
+
+  // \
+
+
+// asfddasdf
+
+
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <img src="/icon.png" alt="Extension Logo" className="w-12 mb-2" />
